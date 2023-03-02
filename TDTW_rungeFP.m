@@ -161,7 +161,11 @@ NumberOfSavedTemporalSteps=int32(max([2,MeshFactor+1]));                    %[1,
 %Initialization of the field
 
 Sprog=AllocateComplex(NumberOfSavedTemporalSteps,NumSlices);          
-Sregr=AllocateComplex(NumberOfSavedTemporalSteps,NumSlices); 
+Sregr=AllocateComplex(NumberOfSavedTemporalSteps,NumSlices);
+
+Sprog1=AllocateComplex(NumberOfSavedTemporalSteps,NumSlices);          
+Sregr1=AllocateComplex(NumberOfSavedTemporalSteps,NumSlices);
+
 %Initialization of the carriers
 RhocbGS0=AllocateDouble(NumQDPopulations,NumSlices);
 RhocbGSp=AllocateComplex(NumQDPopulations,NumSlices);
@@ -340,17 +344,52 @@ drhocbGSp=-RhocbGSp1./Data.taue+1i/(4*Constants.hcut)*(conj(Em).*polp1-Ep.*conj(
   
    %Field Equations 
     
-    Sprog(pp,2:end)= Sprog(pp2,1:end-1)-dz*((MaterialLossesHalfed(1:end-1)).*...
+    Sprog1(pp,2:end)= Sprog(pp2,1:end-1)-dz*((MaterialLossesHalfed(1:end-1)).*...
     Sprog(pp2,1:end-1)-CC*polp(:,1:end-1));              
     
-     Sregr(pp,1:end-1)=Sregr(pp2,2:end)-dz*((MaterialLossesHalfed(2:end)).*...
+     Sregr1(pp,1:end-1)=Sregr(pp2,2:end)-dz*((MaterialLossesHalfed(2:end)).*...
      Sregr(pp2,2:end)-CC.*polm(:,2:end));
 
-    
+  %% Coupling matrix contruction for single section DFB 
+
+ 
+OOmega= 0;                                                                  %grating as defined in Tromborg et al. in IEEE, NO, 11, NOVEMBER 1987  
+Kgr=40*1E-4*exp(i*OOmega);                                                  %grating coupling coeff. [mu^-1]
+
+%Kgr=1/(Data.L);
+
+ggamma=sqrt(Kgr*Kgr');
+
+% Coupling matrix derived following the numerical procedure described in Kim et al.,
+% IEEE JOURNAL OF QUANTUM ELECTRONICS, VOL. 36, NO. 7, JULY 2000
+% in the framework of a split step method
+
+Maccopp(1,1)=sech(ggamma*dz);
+Maccopp(1,2)=1i*tanh(ggamma*dz);
+Maccopp(2,2)=sech(ggamma*dz);
+Maccopp(2,1)=1i*tanh(ggamma*dz);
+
+%  Maccopp(1,1)=cosh(ggamma*dz);
+%  Maccopp(1,2)=-i*(Kgr/ggamma)*sinh(ggamma*dz);
+%  Maccopp(2,2)=cosh(ggamma*dz);
+%  Maccopp(2,1)=i*(Kgr/ggamma)*sinh(ggamma*dz);
+
+%Sregr1(pp,end)=rL*Sprog1(pp,end); 
+%Sprog1(pp,1)= r0*exp(-i*pi*11/12)*Sregr1(pp,1); 
+
+%Forward and backward field coupling
+
+Sprog(pp,2:end)=Maccopp(1,1)*Sprog1(pp,2:end)+Maccopp(1,2)*Sregr1(pp,1:end-1);
+Sregr(pp,1:end-1)=Maccopp(2,1)*Sprog1(pp,2:end)+Maccopp(2,2)*Sregr1(pp,1:end-1);
+       
+       
+%Sprog(pp,2:end)=Maccopp(1,1)*Sprog1(pp,1:end-1)+Maccopp(1,2)*Sregr1(pp,2:end);
+%Sregr(pp,1:end-1)=Maccopp(2,1)*Sprog1(pp,1:end-1)+Maccopp(2,2)*Sregr1(pp,2:end);
+
+%%
     %%%%BOUNDARY CONDITIONS for a FP cavity %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     Sprog(pp,1)= r0*Sregr(pp,1)    ; 
-
     Sregr(pp,end)= rL*Sprog(pp,end);
     
  %   Boundary condition ring bidirectional
