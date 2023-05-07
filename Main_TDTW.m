@@ -20,7 +20,7 @@ if exist(SaveStateString,'file')
 end
 
 
-Dati=DeviceData_OptExpr_FP;                                                   % Dati is a structure with all the physical parameters
+Dati=DeviceData_OptExpr_FP();                                                   % Dati is a structure with all the physical parameters
 
 
 Sim= struct('dt',1*50e-6,'Length',TEnd-TStart,...                             % Sim is a structure with all the physical parameters
