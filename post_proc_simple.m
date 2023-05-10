@@ -8,7 +8,8 @@ color='b';
 valid=(Field.time>=T0 & Field.time<=TEnd).*(rem(1:length(Field.time), Subsample)==0)==1;
 t=Field.time(valid);
 y=Field.EL(valid);
-PLtime=0.5*0.127*2.997925e5*3.6*8.854e-18/(1.6e-19)*(1-0.3)*14*(2/25)*abs(y).^2*1.6*10^(-7);%.*1.6e-19*1/ResTD.Sim.dt/1e-9.*1e3;
+PLtime=0.5*0.127*2.997925e5*3.6*8.854e-18/(1.6e-19)*(1-0.3)*14*(2/25)...
+    *abs(y).^2*1.6*10^(-7);%.*1.6e-19*1/ResTD.Sim.dt/1e-9.*1e3;
 PLtimeAv=mean(PLtime(t>t(end)-1));
 figure ('Position',[260 278 960 620])
 subplot(2,3,1)

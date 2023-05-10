@@ -1,5 +1,5 @@
 %% Function to represent the LIV curve 
-function LIcurve(TStart, TEnd)
+function LIcurve(TStart, TEnd, alphaf, kcoup)
 
 Subsample=1;
 V=2400;
@@ -20,7 +20,8 @@ end
 InputCurrent=sort(InputCurrent);
 for CurrentIndex=length(InputCurrent):-1:1
 
-    Filenamestr = sprintf('Res_%gmAFrom0nsTo300ns_alphaf0.8_kcoup6.5.mat', InputCurrent(CurrentIndex)); 
+    Filenamestr = sprintf('Res_%gmAFrom0nsTo%gns_alphaf%g_kcoup%.1f.mat', ...
+        InputCurrent(CurrentIndex), TEnd, alphaf, kcoup); 
     filename = fullfile(pwd, Filenamestr);
     load(filename);
     valid=(Field.time>=TStart & Field.time<=TEnd).*(rem(1:length(Field.time), Subsample)==0)==1;
@@ -40,8 +41,8 @@ figLI=figure();
 plot(InputCurrent,PLtimeAv, 'linewidth', 1.5, 'color', [0.191 0.18 0.56]); 
 
 %axis settings
-xlabel('Current [mA]','fontsize',30,'interpreter','latex');
-ylabel('Output power [mW]','fontsize',30,'interpreter','latex');
+xlabel('Current (mA)','fontsize',30,'interpreter','latex');
+ylabel('Output power (mW)','fontsize',30,'interpreter','latex');
 
 set(gca,'xtick', InputCurrent,'xminortick', 'on','yminortick', 'on','FontSize', 25,...
         'TickLabelInterpreter','latex', 'TickDir', 'in') %Ticks

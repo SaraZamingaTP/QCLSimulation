@@ -153,7 +153,7 @@ MaterialLossesHalfed=Data.Func_alfa_i(z)/2/1e4;                             %[1,
 
 
 %% Electric fields and random noise
-% The field is expressed in physical units [eV/sec]. I think it is V/m
+% The field is expressed in V/µm
 NumberOfSavedTemporalSteps=int32(max([2,MeshFactor+1]));                    %[1,1] Number of time steps to keep track of. [integer] %NOTE: WE USE HERE MESH FACTOR=1
 
 %Initialization of the field
@@ -286,7 +286,8 @@ for it=1:NumStepsSteps
     
         CC=-1i*((Data.omega_0)*GammaXY*Data.Np)/(2*Constants.c*Constants.ep0*Data.nr);
         
-        DD=(Data.Gamma*(1+1i*Data.alphaf)*(-1-1i*Data.alphaf)/Data.tau_d)*1i*Data.f0*Constants.ep0*Data.epsb;
+        DD=(Data.Gamma*(1+1i*Data.alphaf)*(-1-1i*Data.alphaf)/Data.tau_d)...
+            *1i*Data.f0*Constants.ep0*Data.epsb;
         
         FF=Data.Gamma*(1+1i*Data.alphaf)/Data.tau_d;
         
@@ -383,7 +384,8 @@ Sregr(pp,end)= rL*Sprog(pp,end);
     if double(it)*Datadt>Sim.OpticalPowerSpectrumSamplingStart
         Res.Field.EL(it)=Sprog(pp,end).';
         
-        Res.Field.PLphys(it)=0.5*Constants.c*Data.nr*Constants.ep0*(1-Data.RL)*14*(2/25)*abs((Sprog(pp,end).'))^2/(1.6*10^(-7))  ;   %power intracavity at the end facet [mW=10^-3*J/sec]
+        Res.Field.PLphys(it)=0.5*Constants.c*Data.nr*Constants.ep0*(1-Data.RL)...
+            *14*(2/25)*abs((Sprog(pp,end).'))^2/(1.6*10^(-7)); %power intracavity at the end facet [mW=10^-3*J/sec]
         
         
         Res.Field.E0(it)=Sprog(pp,1).';

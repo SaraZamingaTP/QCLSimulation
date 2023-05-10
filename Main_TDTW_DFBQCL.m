@@ -1,6 +1,5 @@
 function [ResTD, isSimComplete]=Main_TDTW_DFBQCL(Folder, Current, TStart, TEnd, ...
     LoadStateString, isAlphaVar, isKcouplingVar)
-
 cd (Folder);
 %%
 
@@ -22,8 +21,8 @@ end
 
 if isAlphaVar==false && isKcouplingVar==false
 
-    alphaf=0.8; %alpha factor  
-    kcoupling=6.5; %coupling coefficient
+    alphaf=1.5; %alpha factor  
+    kcoupling=5; %coupling coefficient
 
     SaveStateString2=sprintf("_alphaf%.1f_kcoup%.1f.mat", ...
                 alphaf, kcoupling);

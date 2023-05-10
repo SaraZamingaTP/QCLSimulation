@@ -19,7 +19,7 @@ InputCurrent=sort(InputCurrent);
 
 for CurrentIndex=length(InputCurrent):-1:1
 
-    Filenamestr = sprintf('Res_%gmAFrom0nsTo%gns_alphaf%g_kcoup%g.mat', ...
+    Filenamestr = sprintf('Res_%gmAFrom0nsTo%gns_alphaf%g_kcoup%.1f.mat', ...
         InputCurrent(CurrentIndex), TEnd, alphaf, kcoup); 
     filename = fullfile(pwd, Filenamestr);
     load(filename);

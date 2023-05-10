@@ -39,8 +39,8 @@ function d=Width(z)
     d=ones(size(z))*5;
 end
 
-function A=Alfa_i(z)  %3.8 cm^-1: waveguide losses + DFB losses
-    A=ones(size(z))*(3.8+3.2);             
+function A=Alfa_i(z)  %3.8 cm^-1: waveguide losses + DFB losses (3.2)
+    A=ones(size(z))*(3.8+4);             
 end
 
 %Ntoth: numero di portatori totali in ogni slice

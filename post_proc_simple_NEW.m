@@ -42,7 +42,7 @@ dt=t(2)-t(1);
 f=linspace(-0.5/dt,+0.5/dt,length(t));
 P=abs(Y).^2;
 subplot(2,3,2)
-plot(f,P,'color','r');
+plot(f,10*log10(P),'color','r');
 hold on;
 %
 xlabel('Frequency [GHz]')
