@@ -9,7 +9,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
         isAlphaVar=false;
         isKcouplingVar=false;
         isCurrentSweep=true; 
-        inputCurr= 250:25:800; %default range for current bias sweep
+        inputCurr= 250:25:500; %default range for current bias sweep
     elseif nargin == 1
         if isCurrentSweep==false
             disp('Invalid input argument\n');
@@ -17,7 +17,6 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
         else
             isAlphaVar=false;
             isKcouplingVar=false;
-            isCurrentSweep=isCurrentSweep; 
             inputCurr= 250:25:800; %default range for current bias sweep
         end
     elseif nargin == 2
@@ -28,8 +27,6 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
         
         else
 
-            isCurrentSweep=isCurrentSweep; 
-            isAlphaVar=isAlphaVar;
             isKcouplingVar=false;
             
             if isCurrentSweep==true
@@ -47,9 +44,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
             disp('Invalid input arguments\n');
             isValidSimulation=false;
         else 
-            isCurrentSweep=isCurrentSweep;
-            isAlphaVar=isAlphaVar; 
-            isKcouplingVar=isKcouplingVar;
+            
             if isCurrentSweep==true
                inputCurr= 250:25:800;
             else
