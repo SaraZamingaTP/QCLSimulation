@@ -21,7 +21,7 @@ y=Field.EL(valid);
 %what are these numbers
 %PLtime=0.5*0.127*2.997925e5*3.6*8.854e-18/(1.6e-19)*(1-0.3)*14*(2/25)*abs(y).^2*1.6*10^(-7);%.*1.6e-19*1/ResTD.Sim.dt/1e-9.*1e3;
 PLtime=(0.5*2.997925e5*3.3*8.854e-18/(1.6e-19)*...
-            (abs(y).^2)*(1-0.3)*(1/0.127)*V/L)*(1.6e-8);
+            (abs(y).^2)*(1-0.32)*(1/0.127)*V/L)*(1.6e-7);
 
 figure ('Position',[(ScreenSize(1)-Width)/2 (ScreenSize(2)-Height)/2 Width Height])
 

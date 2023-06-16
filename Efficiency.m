@@ -1,6 +1,6 @@
 % efficiency
 isEtaIVar=true;
-isAVar=true;
+isAVar=false;
 
 alpha_i= 3.8; %cm^-1, waveguide loss
 Lcav=0.2; %cm, cavity length
@@ -12,7 +12,7 @@ if isAVar && ~isEtaIVar
     eta_d=eta_i.*(A./(GammaGth.*Lcav));
 elseif isEtaIVar && ~isAVar
     A=1.2;
-    eta_i=linspace(0.7, 0.9, 5)';
+    eta_i=linspace(0.4, 0.9, 20)';
     GammaGth=A./Lcav+alpha_i;
     eta_d=eta_i.*(A./(GammaGth.*Lcav));
 elseif isAVar && isEtaIVar
@@ -32,10 +32,10 @@ end
 
 figInterp=figure();
 if isEtaIVar && ~isAVar
-    plot(eta_i, eta_d, 'linewidth', 1.5)
+    plot(eta_d, eta_i, 'linewidth', 1.5)
     grid on
-    xlabel('$\eta_i$','fontsize',30,'interpreter','latex')
-    ylabel('$\eta_d$','fontsize',30,'interpreter','latex')
+    xlabel('$\eta_d$','fontsize',30,'interpreter','latex')
+    ylabel('$\eta_i$','fontsize',30,'interpreter','latex')
 elseif isAVar && ~isEtaIVar
     plot(A, eta_d, 'linewidth', 1.5)
     grid on

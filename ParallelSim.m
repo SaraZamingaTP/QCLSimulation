@@ -1,6 +1,6 @@
 %launch TDTW_rungeFP.m for multiple simulations
 
-function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
+function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtaiVar)
 
     isValidSimulation=true;
 
@@ -8,12 +8,16 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
     if nargin == 0  %in case no parameters are provided, the current sweep mode is activated
         isAlphaVar=false;
         isKcouplingVar=false;
+        isEtaiVar=false;
         isCurrentSweep=true; 
-        inputCurr= 250:25:500; %default range for current bias sweep
+        inputCurr=[310:1:314]; %default range for current bias sweep
+        %inputCurr = 310;
     elseif nargin == 1
         if isCurrentSweep==false
-            disp('Invalid input argument\n');
-            isValidSimulation=false;
+            inputCurr= 400;
+            isAlphaVar=false;
+            isKcouplingVar=false;
+            isEtaiVar=false;
         else
             isAlphaVar=false;
             isKcouplingVar=false;
@@ -28,11 +32,12 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
         else
 
             isKcouplingVar=false;
+            isEtaiVar=false;
             
             if isCurrentSweep==true
                 inputCurr= 250:25:800;
             else
-                inputCurr=350; %default value
+                inputCurr=328; %default value
             end
             
         end
@@ -44,15 +49,33 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
             disp('Invalid input arguments\n');
             isValidSimulation=false;
         else 
-            
+            isEtaiVar=false;
+
             if isCurrentSweep==true
                inputCurr= 250:25:800;
             else
-                inputCurr=350; %default value
+                inputCurr=328; %default value
+            end
+        end
+    elseif nargin == 4
+
+        if (isCurrentSweep==true && (isAlphaVar==true ...
+                || isKcouplingVar==true || isEtaiVar==true)) || ...
+            (isCurrentSweep==false && isAlphaVar==false && ...
+            isKcouplingVar==false && isEtaiVar==false) 
+
+            disp('Invalid input arguments\n');
+            isValidSimulation=false;
+        else 
+            
+            if isCurrentSweep==true
+               inputCurr= 250:25:800;
+            elseif isEtaiVar==true
+                inputCurr=400; %default value
             end
         end
 
-    elseif nargin > 3
+    elseif nargin > 4
         disp('Too many input arguments\n');
         isValidSimulation=false;
     end
@@ -61,7 +84,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar)
 %change these parameters for simulating different input conditions:
 Folder=pwd; %where the files are 
 TStart=0; % start time of the simulation [ns]
-TEnd=200; %stop time [ns]
+TEnd=230; %stop time [ns]
 LoadStateString=''; %in case a new simulation should start from the final 
 % state of a previous simulation, load here the relative Status file
 % Define range of input values
@@ -70,20 +93,20 @@ LoadStateString=''; %in case a new simulation should start from the final
 %% Simulation 
 
 if isValidSimulation %only if the number of valid parameters is the good one
-
+    
     try
     
         if isCurrentSweep %current sweep
             parfor i=1:length(inputCurr)
                 ResTD{i}=Main_TDTW_DFBQCL(Folder, inputCurr(i),TStart,TEnd, LoadStateString, ...
-                    isAlphaVar, isKcouplingVar);
+                    isAlphaVar, isKcouplingVar, isEtaiVar);
             end
 
         else
     
             for i=1:length(inputCurr)
                 ResTD{i}=Main_TDTW_DFBQCL(Folder, inputCurr(i),TStart,TEnd, LoadStateString, ...
-                    isAlphaVar, isKcouplingVar);
+                    isAlphaVar, isKcouplingVar, isEtaiVar);
             end
         end
     

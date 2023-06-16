@@ -1,4 +1,4 @@
-function PowerSpectrumMap(TStart, TEnd, alphaf, kcoup)
+function PowerSpectrumMap(TStart, TEnd, alphaf, kcoup, etai)
 
 %Laser spectrogram as a function of the current 
 
@@ -19,7 +19,7 @@ InputCurrent=sort(InputCurrent);
 
 for CurrentIndex=length(InputCurrent):-1:1
 
-    Filenamestr = sprintf('Res_%gmAFrom0nsTo%gns_alphaf%g_kcoup%.1f.mat', ...
+    Filenamestr = sprintf('Res_%gmAFrom0nsTo%gns_alphaf%g_kcoup%.1f_etai0.8.mat', ...
         InputCurrent(CurrentIndex), TEnd, alphaf, kcoup); 
     filename = fullfile(pwd, Filenamestr);
     load(filename);
@@ -62,10 +62,20 @@ caxis_values = [max(max(P))-22;
 
 % Create a color axis using the custom colormap and range of values
 colormap(interp1(caxis_values, cmap, linspace(min(caxis_values), max(caxis_values), 256)));
-
 % Set the colormap and scaling
 clims=[max(max(P))-45, max(max(P))];
 InputCurrent=InputCurrent';
+
+% % Reshape the frequency and power spectrum matrices
+% freq_data_2D = reshape(f(1,:), size(f, 1), []);
+% for CurrentIndex=length(InputCurrent):-1:1
+%     power_spectrum_db_2D = reshape(P(:, CurrentIndex), ...
+%         size(P(:, CurrentIndex), 1), []);
+% end
+% 
+% % Create a power spectrum map using surf
+% surf(InputCurrent, freq_data_2D, power_spectrum_db_2D, clims);
+
 imagesc(InputCurrent, f(1,:)', P, clims);
 shading interp;
 set(gca,'YDir','normal'); % to display the Y-axis in ascending order

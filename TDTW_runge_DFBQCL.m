@@ -87,7 +87,7 @@ NumQDPopulations=int32(Data.NumQDPopulations);                              %[1,
 assert(rem(NumQDPopulations,2)==1);
 onesNumQDPopulations=ones(NumQDPopulations,1);                              %[NumPop,1] Vector of 1's used for data expansion []
 MeshFactor=int32(Sim.Mesh_factor);                                           %[1,1] Mesh factor from Javalojes accelerated model [integer]
-
+etai=Data.eta_i;
 
 GroupVelocity=Constants.c/Data.nr;                                          %[1,1] Group velocity [um/ns]
 r0=sqrt(Data.R0);                                                           %[1,1] Field reflection coefficient at the facet in z=0 []
@@ -260,7 +260,7 @@ for it=1:NumStepsSteps
         disp([num2str((0.5*Constants.c*Data.nr*Constants.ep0*...
             (abs(Sprog(pp2,end))^2+abs(Sregr(pp2,end))^2)... % Intensity in z=L
             *tL*(1/GammaXY)*DeviceVol/DeviceLength)*... %transmission coefficient * Photon volume
-            (1.6e-8))]); %scaling factor to have P in mW
+            (1.6e-7))]); %scaling factor to have P in mW
                         
         NextTPrint1=NextTPrint1+0.1;%[1,1]Time at which the elapsed and remaining times are printed [ns]
     end
@@ -294,7 +294,7 @@ for it=1:NumStepsSteps
 %Second order Runge-Kutta algorithm is used to solve the ODE equations for each slice         
         
 %Variation of the carriers variables 
-etai=Data.eta_i;
+
 drhocbGS0=10^(-12)*I*etai/(Constants.e*Data.Vol)-RhocbGS0/Data.taue-1/(2*Constants.hcut)*imag(conj(Ep).*polp+conj(Em).*polm);
 drhocbGSp=-RhocbGSp/Data.taue+1i/(4*Constants.hcut)*(conj(Em).*polp-Ep.*conj(polm));
 
