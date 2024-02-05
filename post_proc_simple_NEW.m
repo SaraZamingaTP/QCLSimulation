@@ -4,7 +4,7 @@ function post_proc_simple_NEW(Field, Carriers, TStart, TEnd)
 % TEnd=Inf; %why?? 
 Subsample=1;
 color='b';
-V=2400;
+V=2240;
 L=2000; 
 
 %% Figure settings
@@ -60,7 +60,7 @@ dt=t(2)-t(1);
 f=linspace(-0.5/dt,+0.5/dt,length(t));
 Pf=abs(Y).^2;
 plot(f,10*log10(Pf),'color','k');
-xlim([0 100])
+xlim([0 350])
 hold on;
 
 xlabel('Frequency [GHz]')
@@ -89,7 +89,7 @@ grid on;
 xlabel('Time [ns]');
 ylabel('Carriers grating (Z=L)');
 
-%Plot of the instantaneous frequency
+%% Plot of the instantaneous frequency
 valid=(Field.time>=TStart & Field.time<=TEnd).*(rem(1:length(Field.time), Subsample)==0)==1;
 t=Field.time(valid);
 y=Field.EL(valid);
@@ -100,6 +100,7 @@ subplot(2,3,6)
 plot(t(1:length(inst)),inst); 
 grid on;
 
+%ylim([-20 -15])
 xlabel('Time [ns]');
 ylabel('Instantaneous Frequency [GHz]');
 
@@ -117,6 +118,7 @@ yyaxis right
 plot(t(1:length(inst)),inst); 
 xlabel('Time [ns]');
 ylabel('Instantaneous Frequency [GHz]')
+%ylim([-20 -15])
 
 set(gcf, 'color', 'w');
 

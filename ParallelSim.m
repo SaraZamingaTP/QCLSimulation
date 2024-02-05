@@ -4,35 +4,38 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtai
 
     isValidSimulation=true;
 
-   %check on the input parameters
+   %% check on the input parameters
     if nargin == 0  %in case no parameters are provided, the current sweep mode is activated
         isAlphaVar=false;
         isKcouplingVar=false;
         isEtaiVar=false;
         isCurrentSweep=true; 
         inputCurr=[310:1:314]; %default range for current bias sweep
-        %inputCurr = 310;
-    elseif nargin == 1
+        
+    elseif nargin == 1 %if one param is provided, it is isCurrentSweep
+
+        isAlphaVar=false;
+        isKcouplingVar=false;
+        isEtaiVar=false;
+
         if isCurrentSweep==false
-            inputCurr= 400;
-            isAlphaVar=false;
-            isKcouplingVar=false;
-            isEtaiVar=false;
+            inputCurr = 300;
         else
-            isAlphaVar=false;
-            isKcouplingVar=false;
             inputCurr= 250:25:800; %default range for current bias sweep
         end
+
     elseif nargin == 2
+
+        isKcouplingVar=false;
+        isEtaiVar=false;
+
         if (isCurrentSweep==true && isAlphaVar==true) || ...
             (isCurrentSweep==false && isAlphaVar==false)
+
             disp('Invalid input arguments\n');
             isValidSimulation=false;
         
         else
-
-            isKcouplingVar=false;
-            isEtaiVar=false;
             
             if isCurrentSweep==true
                 inputCurr= 250:25:800;
@@ -43,13 +46,16 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtai
         end
 
     elseif nargin == 3
+
+        isEtaiVar=false;
+
         if (isCurrentSweep==true && (isAlphaVar==true || isKcouplingVar==true)) || ...
             (isCurrentSweep==false && isAlphaVar==false && isKcouplingVar==false) 
 
             disp('Invalid input arguments\n');
             isValidSimulation=false;
+
         else 
-            isEtaiVar=false;
 
             if isCurrentSweep==true
                inputCurr= 250:25:800;
@@ -57,6 +63,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtai
                 inputCurr=328; %default value
             end
         end
+
     elseif nargin == 4
 
         if (isCurrentSweep==true && (isAlphaVar==true ...
@@ -66,6 +73,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtai
 
             disp('Invalid input arguments\n');
             isValidSimulation=false;
+        
         else 
             
             if isCurrentSweep==true
@@ -76,6 +84,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtai
         end
 
     elseif nargin > 4
+
         disp('Too many input arguments\n');
         isValidSimulation=false;
     end
@@ -85,6 +94,7 @@ function SimState=ParallelSim(isCurrentSweep, isAlphaVar, isKcouplingVar, isEtai
 Folder=pwd; %where the files are 
 TStart=0; % start time of the simulation [ns]
 TEnd=230; %stop time [ns]
+
 LoadStateString=''; %in case a new simulation should start from the final 
 % state of a previous simulation, load here the relative Status file
 % Define range of input values

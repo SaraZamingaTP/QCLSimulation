@@ -19,7 +19,7 @@ dati=struct(...
 'NumQDPopulations',NumQDPopulations,...     %[1,1] Number of sublevels population (Note: this number must be odd!!!) []
 'Gain',         2*[0.1363*0.77*1.05*0.8; 0.1363/2*0.77*1.05]*1e-15,... % moltiplicazione per 0.7 in ES1 per tenere conto degli integrali di sovrapposizione
 'Func_HomogeneousBroadeningGS',@Func_HomogeneousBroadeningGS,...               %[1,1] 
-'tau_d',        1.0e-4,... %(ns) 1/tau_d: effective polarization decay rate
+'tau_d',        1.0e-4,... % 1/tau_d: effective polarization decay rate
 'taue',         1.64e-3,... %(ns) 1e-3 original value: carrier lifetime due to radiative&nonradiative process
 'R0',           0.99,...%.32,... %[1,1] MODIFIED!!! power reflectivity in z=0 facet
 'RL',           0.32,...%.32,...  %[1,1] power reflectivity in z=L facet

@@ -27,15 +27,15 @@ if isAlphaVar==false && isKcouplingVar==false && isEtaiVar==false
 
     SaveStateString2=sprintf("_alphaf%.1f_kcoup%.1f_etai%g.mat", ...
                 alphaf, kcoupling,eta_i);
-    SaveStateString = append(SaveStateString1,SaveStateString2);
+    SaveStateString = strcat(SaveStateString1,SaveStateString2);
     
     Dati=DeviceData_OptExpr_DFB(alphaf, kcoupling, eta_i);                                                   % Dati is a structure with all the physical parameters
     
     Sim= struct('dt',1*50e-6,'Length',TEnd-TStart,...                             % Sim is a structure with all the physical parameters
         'Pilot',@(e,t)Current*ones(size(e)),...
         'Pilot1',Current,...
-        'Amplnoise_p',1.1*10^(-31),...%1.1*10^(-31)
-        'Amplnoise_r',1.1*10^(-31),...%1.1*10^(-31)
+        'Amplnoise_p',1.1*10^(-4),...%1.1*10^(-31)
+        'Amplnoise_r',1.1*10^(-4),...%1.1*10^(-31)
         'PrintSimulationState',0.1,...
         'OutputPowerSampling',20,...
         'time_stop_Esp',10000,'OpticalPowerSpectrumSamplingStart',0,...
@@ -45,7 +45,7 @@ if isAlphaVar==false && isKcouplingVar==false && isEtaiVar==false
      ResTD=TDTW_runge_DFBQCL(Dati,Sim);
      ResString2=sprintf("_alphaf%.1f_kcoup%.1f_etai%g.mat", ...
          alphaf, kcoupling, eta_i);
-     ResString = append(ResString1,ResString2);
+     ResString = strcat(ResString1,ResString2);
      save(ResString, '-struct','ResTD');
 
      isSimComplete=true;
