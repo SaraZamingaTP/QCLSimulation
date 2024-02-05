@@ -1,4 +1,4 @@
-function [Res]=TDTW_rungeFP(Data,Sim) %#codegen
+function [Res]=TDTW_runge_DFBQCL(Data,Sim) %#codegen
 %Copyright 2011 Mattia Rossetti, Paolo Bardella, Mariangela Gioannini,
 %Lorenzo Columbo, Carlo Silvestri
 %Dynamic simulation of QCL using TDTW model
@@ -68,8 +68,7 @@ Constants=struct('h',4.1357e-6,...                                          %Pla
                  'e',1.6e-19,...                                            %Electron charge [C]
                  'Kb',8.617343e-5,...                                       %Boltzmann constant [eV/'K]
                  'c',2.997925e5,...                                        %Vacuum speed of light [um/ns] 3e8m/s=3e8*1e6um/1e9ns=3e5um/ns
-                 'ep0',8.854e-18/(1.6e-19));                                         %Vacuum permittivity [e/(um*V)]
-
+                 'ep0',8.854e-18/(1.6e-19));             %Vacuum permittivity [C/(um*V)]
              
 disp(['Starting simulation on ' datestr(now)]);
 
@@ -80,22 +79,21 @@ disp(['Starting simulation on ' datestr(now)]);
 %automatic conversion by MATLAB coder
 
 
-DeviceLength=Data.L;                                                        %[1,1] Total device length [um]
+DeviceLength=Data.L;                                                        %[1,1] Total device length [um]                                                               %[1,1] cavity length (µm)
+DeviceVol=Data.Vol;                                                               %[1,1] Total device volume [µm^3]
 Temperature=Data.T;                                                         %[1,1] Device temperature [Kelvin]
 KbTemp=Constants.Kb*Temperature;                                            %[1,1] Product of Boltzmann constant and temperature [eV]
 NumQDPopulations=int32(Data.NumQDPopulations);                              %[1,1] Number of sublevels populations. Should be odd. [integer]
 assert(rem(NumQDPopulations,2)==1);
 onesNumQDPopulations=ones(NumQDPopulations,1);                              %[NumPop,1] Vector of 1's used for data expansion []
 MeshFactor=int32(Sim.Mesh_factor);                                           %[1,1] Mesh factor from Javalojes accelerated model [integer]
-
+etai=Data.eta_i;
 
 GroupVelocity=Constants.c/Data.nr;                                          %[1,1] Group velocity [um/ns]
 r0=sqrt(Data.R0);                                                           %[1,1] Field reflection coefficient at the facet in z=0 []
 rL=sqrt(Data.RL);                                                           %[1,1] Field reflection coefficient at the facet in z=L []
 t0=sqrt(1-Data.R0);                                                         %[1,1] Field transmission coefficient at the facet in z=0 []
 tL=sqrt(1-Data.RL);                                                         %[1,1] Field transmission coefficient at the facet in z=L []
-
-
 
 %% Calculation of the discretization space step and time step
 %Fractional number of discretized slices, rounded to closest integer
@@ -104,9 +102,9 @@ Tau_dephasing=Data.tau_d  ;                                  %[1,1] dipoles deph
 
 dtnorm=Sim.dt/Tau_dephasing;
 
-GroupVelocitynorm=GroupVelocity*Tau_dephasing/DeviceLength
+GroupVelocitynorm=GroupVelocity*Tau_dephasing/DeviceLength;
   
-DeviceLengthnorm=1
+DeviceLengthnorm=1;
  
 NumSlices=int32(round(1/(Sim.Mesh_factor*GroupVelocitynorm*dtnorm)));%[1,1]
 
@@ -127,7 +125,7 @@ end
     fprintf('Simulation normalized time step is %g Tau_dephasing', Datadtnorm);
 
 %Print also the total number of slices
-fprintf('The %gum long device has been split in %d longitudinal slices\n', DeviceLength, NumSlices);
+fprintf('\nThe %gum long device has been split in %d longitudinal slices\n', DeviceLength, NumSlices);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -155,7 +153,7 @@ MaterialLossesHalfed=Data.Func_alfa_i(z)/2/1e4;                             %[1,
 
 
 %% Electric fields and random noise
-% The field is expressed in physical units [eV/sec]. 
+% The field is expressed in V/µm
 NumberOfSavedTemporalSteps=int32(max([2,MeshFactor+1]));                    %[1,1] Number of time steps to keep track of. [integer] %NOTE: WE USE HERE MESH FACTOR=1
 
 %Initialization of the field
@@ -173,6 +171,9 @@ RhocbGSm=AllocateComplex(NumQDPopulations,NumSlices);
 %Initialization of the polarization envelopes
 polp=AllocateComplex(NumQDPopulations,NumSlices);
 polm=AllocateComplex(NumQDPopulations,NumSlices);
+
+%Initialization of the coupling matrix in the numerical solution form
+Maccopp=AllocateComplex(2,2);
 
 
 %% Field confinement factor
@@ -197,17 +198,14 @@ if ~isempty(Sim.LoadState)
     'RhocbGS0','RhocbGSp');
 end
 
- 
-
-
 %STEP 2 %%%%%%
 %%%%%%%%%%%%%% Program main loop %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 NextTPrint=Sim.PrintSimulationState+Sim.TStart;                             %[1,1]Time at which the elapsed and remaining times are printed [ns]
 tic;
 
-NextTPrint1=0.01;
-NextTPrint2=0.01;
+NextTPrint1=0.05; %before: 0.01
+NextTPrint2=0.05; %before: 0.01
 
 Ep=AllocateComplex(NumQDPopulations,NumSlices);                                       %[NumQDPopulations,NumSlices] forward electric field inizialization
 Em=AllocateComplex(NumQDPopulations,NumSlices);                                       %[NumQDPopulations,NumSlices] backward electric field inizialization
@@ -215,16 +213,16 @@ Em=AllocateComplex(NumQDPopulations,NumSlices);                                 
 for it=1:NumStepsSteps
 
     
-    if it==1 & strcmp(Sim.LoadState,'')==1
+    if it==1 && strcmp(Sim.LoadState,'')==1
         
  
       
-    Ep=Sim.Amplnoise_p*(rand(NumQDPopulations,NumSlices)+i*rand(NumQDPopulations,NumSlices));
+    Ep=Sim.Amplnoise_p*(rand(NumQDPopulations,NumSlices)+1i*rand(NumQDPopulations,NumSlices));
     
-    Em=Sim.Amplnoise_r*(rand(NumQDPopulations,NumSlices)+i*rand(NumQDPopulations,NumSlices));
+    Em=Sim.Amplnoise_r*(rand(NumQDPopulations,NumSlices)+1i*rand(NumQDPopulations,NumSlices));
     
     
-    elseif  it==1 & strcmp(Sim.LoadState,'')==0
+    elseif  it==1 && strcmp(Sim.LoadState,'')==0
     
           
     Ep=repmat(Sprog(pp2,:),NumQDPopulations,1);
@@ -255,11 +253,14 @@ for it=1:NumStepsSteps
         disp('time(ns)');
         disp([num2str(CurrentTime)]);
  
-         disp('N0 (um^-3)');
-         disp([num2str(RhocbGS0(1,end))]);
+        disp('N0 (um^-3)');
+        disp([num2str(RhocbGS0(1,end))]);
 
-         disp('Power(mW)');
-        disp([num2str(0.5*GammaXY*Constants.c*Data.nr*Constants.ep0*(1-Data.RL)*2*(14/25)*(abs(Sprog(pp2,end))^2+abs(Sregr(pp2,end))^2)*(1.6*10^(-7)))]);
+        disp('Power(mW)');
+        disp([num2str((0.5*Constants.c*Data.nr*Constants.ep0*...
+            (abs(Sprog(pp2,end))^2+abs(Sregr(pp2,end))^2)... % Intensity in z=L
+            *tL*(1/GammaXY)*DeviceVol/DeviceLength)*... %transmission coefficient * Photon volume
+            (1.6e-7))]); %scaling factor to have P in mW
                         
         NextTPrint1=NextTPrint1+0.1;%[1,1]Time at which the elapsed and remaining times are printed [ns]
     end
@@ -276,9 +277,7 @@ for it=1:NumStepsSteps
 
    
 %%%%%%% CARRIERS and POLARIZATIONS scaled RATE EQUATIONS%%%%%%%%%%%%%%%%%%%
-        
 
-        
         I=Sim.Pilot1;                                                          % pump current [mA]
        
        
@@ -287,15 +286,16 @@ for it=1:NumStepsSteps
     
         CC=-1i*((Data.omega_0)*GammaXY*Data.Np)/(2*Constants.c*Constants.ep0*Data.nr);
         
-        DD=(Data.Gamma*(1+1i*Data.alphaf)*(-1-1i*Data.alphaf)/Data.tau_d)*1i*Data.f0*Constants.ep0*Data.epsb;
+        DD=(Data.Gamma*(1+1i*Data.alphaf)*(-1-1i*Data.alphaf)/Data.tau_d)...
+            *1i*Data.f0*Constants.ep0*Data.epsb;
         
         FF=Data.Gamma*(1+1i*Data.alphaf)/Data.tau_d;
         
 %Second order Runge-Kutta algorithm is used to solve the ODE equations for each slice         
         
-%Variation of the carriers variables       
+%Variation of the carriers variables 
 
-drhocbGS0=10^(-12)*I/(Constants.e*Data.Vol)-RhocbGS0/Data.taue-1/(2*Constants.hcut)*imag(conj(Ep).*polp+conj(Em).*polm);
+drhocbGS0=10^(-12)*I*etai/(Constants.e*Data.Vol)-RhocbGS0/Data.taue-1/(2*Constants.hcut)*imag(conj(Ep).*polp+conj(Em).*polm);
 drhocbGSp=-RhocbGSp/Data.taue+1i/(4*Constants.hcut)*(conj(Em).*polp-Ep.*conj(polm));
 
 %%%%% Variation of the microscopic polarizations %%%%%
@@ -316,7 +316,7 @@ drhopolm=-FF*polm-DD*(RhocbGS0.*Em+conj(RhocbGSp).*Ep);
         
         
     
-drhocbGS0=10^(-12)*I/(Constants.e*Data.Vol)-RhocbGS01./Data.taue-1/(2*Constants.hcut)*imag(conj(Ep).*polp1+conj(Em).*polm1);
+drhocbGS0=10^(-12)*I*etai/(Constants.e*Data.Vol)-RhocbGS01./Data.taue-1/(2*Constants.hcut)*imag(conj(Ep).*polp1+conj(Em).*polm1);
 drhocbGSp=-RhocbGSp1./Data.taue+1i/(4*Constants.hcut)*(conj(Em).*polp1-Ep.*conj(polm1));
 
         
@@ -330,7 +330,7 @@ drhocbGSp=-RhocbGSp1./Data.taue+1i/(4*Constants.hcut)*(conj(Em).*polp1-Ep.*conj(
  %Update of the values of carriers and polarization (second part of the Runge-Kutta algorithm)
     
  
-        RhocbGS0=RhocbGS0+Sim.subsampleRE*Datadt*drhocbGS0;
+       RhocbGS0=RhocbGS0+Sim.subsampleRE*Datadt*drhocbGS0;
 
        RhocbGSp=RhocbGSp+Sim.subsampleRE*Datadt*drhocbGSp;
         
@@ -352,11 +352,8 @@ drhocbGSp=-RhocbGSp1./Data.taue+1i/(4*Constants.hcut)*(conj(Em).*polp1-Ep.*conj(
 
   %% Coupling matrix contruction for single section DFB 
 
- 
 OOmega= 0;                     %grating as defined in Tromborg et al. in IEEE, NO, 11, NOVEMBER 1987  
-Kgr=6*1E-4*exp(1i*OOmega);    %grating coupling coeff. [mu^-1]
-
-%Kgr=1/(Data.L);
+Kgr=Data.kcoupling*1E-4*exp(1i*OOmega);    %grating coupling coeff. [mu^-1]
 
 ggamma=sqrt(Kgr*Kgr');
 
@@ -369,36 +366,16 @@ Maccopp(1,2)=1i*tanh(ggamma*dz);
 Maccopp(2,2)=sech(ggamma*dz);
 Maccopp(2,1)=1i*tanh(ggamma*dz);
 
-%  Maccopp(1,1)=cosh(ggamma*dz);
-%  Maccopp(1,2)=-i*(Kgr/ggamma)*sinh(ggamma*dz);
-%  Maccopp(2,2)=cosh(ggamma*dz);
-%  Maccopp(2,1)=i*(Kgr/ggamma)*sinh(ggamma*dz);
-
-%Sregr1(pp,end)=rL*Sprog1(pp,end); 
-%Sprog1(pp,1)= r0*exp(-i*pi*11/12)*Sregr1(pp,1); 
-
 %Forward and backward field coupling
-
 Sprog(pp,2:end)=Maccopp(1,1)*Sprog1(pp,2:end)+Maccopp(1,2)*Sregr1(pp,1:end-1);
 Sregr(pp,1:end-1)=Maccopp(2,1)*Sprog1(pp,2:end)+Maccopp(2,2)*Sregr1(pp,1:end-1);
        
-       
-%Sprog(pp,2:end)=Maccopp(1,1)*Sprog1(pp,1:end-1)+Maccopp(1,2)*Sregr1(pp,2:end);
-%Sregr(pp,1:end-1)=Maccopp(2,1)*Sprog1(pp,1:end-1)+Maccopp(2,2)*Sregr1(pp,2:end);
-
 %%
-    %%%%BOUNDARY CONDITIONS for a FP cavity %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    Sprog(pp,1)= r0*Sregr(pp,1)    ; 
-    Sregr(pp,end)= rL*Sprog(pp,end);
-    
- %   Boundary condition ring bidirectional
-    
-%    Sprog(pp,1)= r0*Sprog(pp,end);     
 
-%    Sregr(pp,end)= rL*Sregr(pp,1);
-      
+%%%%  BOUNDARY CONDITIONS for a FP cavity %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Sprog(pp,1)= r0*Sregr(pp,1)    ; 
+Sregr(pp,end)= rL*Sprog(pp,end);
 
 %% saving results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
    
@@ -407,7 +384,8 @@ Sregr(pp,1:end-1)=Maccopp(2,1)*Sprog1(pp,2:end)+Maccopp(2,2)*Sregr1(pp,1:end-1);
     if double(it)*Datadt>Sim.OpticalPowerSpectrumSamplingStart
         Res.Field.EL(it)=Sprog(pp,end).';
         
-        Res.Field.PLphys(it)=0.5*Constants.c*Data.nr*Constants.ep0*(1-Data.RL)*14*(2/25)*abs((Sprog(pp,end).'))^2/(1.6*10^(-7))  ;   %power intracavity at the end facet [mW=10^-3*J/sec]
+        Res.Field.PLphys(it)=0.5*Constants.c*Data.nr*Constants.ep0*(1-Data.RL)...
+            *14*(2/25)*abs((Sprog(pp,end).'))^2/(1.6*10^(-7)); %power intracavity at the end facet [mW=10^-3*J/sec]
         
         
         Res.Field.E0(it)=Sprog(pp,1).';
